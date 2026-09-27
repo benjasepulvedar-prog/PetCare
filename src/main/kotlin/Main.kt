@@ -70,6 +70,15 @@ fun main() {
         tipoDueno = TipoDueno.PARTICULAR
     )
     sistema.registrarEntrada(pacienteError)
+
+    println()
+    println("--- PRUEBA ERROR DE TARIFA ---")
+
+    sistema.registrarSalida(
+        codigo = "CA12CD",
+        minutos = 0
+    )
+
     println()
     println("--- SALIDAS ---")
     sistema.registrarSalida(
