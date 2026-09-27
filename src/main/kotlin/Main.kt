@@ -1,5 +1,6 @@
 package org.example
 
+import kotlinx.coroutines.runBlocking
 import org.example.model.Canino
 import org.example.model.Exotico
 import org.example.model.Felino
@@ -7,10 +8,9 @@ import org.example.model.TipoDueno
 import org.example.service.PetCare
 import java.time.LocalDateTime
 
-fun main() {
 
+fun main() = runBlocking {
     val sistema = PetCare()
-
     val max = Canino(
         codigo = "CA12CD",
         nombre = "Max",
@@ -18,6 +18,7 @@ fun main() {
         fechaIngreso = LocalDateTime.now(),
         tipoDueno = TipoDueno.CONVENIO
     )
+
     val luna = Canino(
         codigo = "CA99ZA",
         nombre = "Luna",
@@ -25,6 +26,7 @@ fun main() {
         fechaIngreso = LocalDateTime.now(),
         tipoDueno = TipoDueno.PARTICULAR
     )
+
     val misi = Felino(
         codigo = "FE22TO",
         nombre = "Misi",
@@ -32,6 +34,7 @@ fun main() {
         fechaIngreso = LocalDateTime.now(),
         tipoDueno = TipoDueno.PARTICULAR
     )
+
     val loro = Exotico(
         codigo = "EX44RG",
         nombre = "Loro",
@@ -49,7 +52,6 @@ fun main() {
         tipoDueno = TipoDueno.PARTICULAR,
         silvestre = false
     )
-
     println("--- ENTRADAS ---")
     sistema.registrarEntrada(max)
     sistema.registrarEntrada(luna)
@@ -59,9 +61,9 @@ fun main() {
     println()
     println("--- BOXES OCUPADOS ---")
     sistema.mostrarBoxes()
-
     println()
     println("--- PRUEBA CODIGO INVALIDO ---")
+
     val pacienteError = Canino(
         codigo = "123ABC",
         nombre = "Rocky",
@@ -70,10 +72,8 @@ fun main() {
         tipoDueno = TipoDueno.PARTICULAR
     )
     sistema.registrarEntrada(pacienteError)
-
     println()
     println("--- PRUEBA ERROR DE TARIFA ---")
-
     sistema.registrarSalida(
         codigo = "CA12CD",
         minutos = 0
@@ -93,7 +93,6 @@ fun main() {
         codigo = "FE22TO",
         minutos = 18
     )
-
     sistema.registrarSalida(
         codigo = "EX44RG",
         minutos = 120

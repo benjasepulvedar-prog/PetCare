@@ -1,5 +1,6 @@
 package org.example.service
 
+import kotlinx.coroutines.delay
 import org.example.model.Box
 import org.example.model.Canino
 import org.example.model.EstadoBox
@@ -12,9 +13,7 @@ import org.example.model.TipoDueno
 class PetCare {
 
     val boxes = mutableListOf<Box>()
-
     val historial = mutableListOf<Ticket>()
-
     var totalRecaudado = 0.0
 
     init {
@@ -33,26 +32,22 @@ class PetCare {
         val formato = Regex("^[A-Za-z]{2}[0-9]{2}[A-Za-z]{2}$")
         return formato.matches(codigo)
     }
-    fun registrarEntrada(paciente: Paciente) {
+    suspend fun registrarEntrada(paciente: Paciente) {
+
         try {
             if (!validarCodigo(paciente.codigo)) {
-                throw IllegalArgumentException(
-                    "codigo de atencion invalido"
-                )
+                throw IllegalArgumentException("codigo de atencion invalido")
             }
-
             for (box in boxes) {
                 if (box.estado is EstadoBox.Libre) {
-                    box.estado =
-                        EstadoBox.EnProceso("Registrando entrada")
+                    box.estado = EstadoBox.EnProceso("Registrando entrada")
                     println(
                         "Registrando entrada de ${paciente.nombre} " +
                                 "en Box ${box.numero}"
                     )
                     println("Esperando confirmacion del sensor...")
-
-                    box.estado =
-                        EstadoBox.EnAtencion(paciente)
+                    delay(3000)
+                    box.estado = EstadoBox.EnAtencion(paciente)
                     println(
                         "${paciente.nombre} ingreso correctamente " +
                                 "al Box ${box.numero}"
@@ -60,48 +55,41 @@ class PetCare {
                     return
                 }
             }
-
             println("AVISO: no hay boxes libres disponibles")
         } catch (error: IllegalArgumentException) {
             println("AVISO: ${error.message}")
         }
     }
-
     fun calcularMontoFinal(
         paciente: Paciente,
         minutos: Int
     ): Double {
         if (minutos <= 0) {
-            throw IllegalArgumentException(
-                "tiempo de atencion invalido"
-            )
+            throw IllegalArgumentException("tiempo de atencion invalido")
         }
-        var monto =
-            paciente.calcularCostoBase(minutos)
-
+        var monto = paciente.calcularCostoBase(minutos)
         val felinoGratis =
             paciente is Felino && minutos < 20
         if (monto <= 0.0 && !felinoGratis) {
-            throw IllegalArgumentException(
-                "resultado de tarifa invalido"
-            )
+            throw IllegalArgumentException("resultado de tarifa invalido")
         }
         if (felinoGratis) {
             return 0.0
         }
-        monto *= 1.19
 
+        monto *= 1.19
 
         if (paciente.tipoDueno == TipoDueno.MUNICIPAL) {
             monto *= 0.50
         }
         return monto
     }
-    fun registrarSalida(
+    suspend fun registrarSalida(
         codigo: String,
         minutos: Int
     ) {
         for (box in boxes) {
+
             val estadoActual = box.estado
             if (estadoActual is EstadoBox.EnAtencion) {
                 if (estadoActual.paciente.codigo == codigo) {
@@ -111,12 +99,15 @@ class PetCare {
                     println(
                         "Procesando salida de ${paciente.nombre}"
                     )
+                    println("Esperando confirmacion del sensor...")
+                    delay(6500)
                     try {
                         val monto =
                             calcularMontoFinal(
                                 paciente,
                                 minutos
                             )
+
                         val numeroTicket =
                             historial.size + 1
                         val ticket =
@@ -126,6 +117,7 @@ class PetCare {
                                 minutos = minutos,
                                 montoPagado = monto
                             )
+
                         historial.add(ticket)
                         totalRecaudado += monto
                         box.estado = EstadoBox.Libre
@@ -135,7 +127,6 @@ class PetCare {
                         println("Paciente: ${paciente.nombre}")
                         println("Tiempo: $minutos minutos")
                         println("Monto pagado: \$${ticket.montoPagado}")
-
                     } catch (error: IllegalArgumentException) {
                         println("AVISO: ${error.message}")
                         box.estado =
@@ -147,13 +138,11 @@ class PetCare {
         }
         println("AVISO: paciente no encontrado")
     }
-
     fun cantidadBoxesDisponibles(): Int {
         return boxes.count {
             it.estado is EstadoBox.Libre
         }
     }
-
     fun pacientesConvenio(): List<Paciente> {
         return historial
             .filter {
@@ -164,7 +153,6 @@ class PetCare {
                 it.paciente
             }
     }
-
     fun ingresoPromedio(): Double {
         if (historial.isEmpty()) {
             return 0.0
@@ -175,13 +163,11 @@ class PetCare {
             }
             .average()
     }
-
     fun codigosFinalizados(): List<String> {
         return historial.map {
             it.paciente.codigo
         }
     }
-
     fun pacienteMayorTiempo(): Paciente? {
         val ticket =
             historial.maxByOrNull {
@@ -189,7 +175,9 @@ class PetCare {
             }
         return ticket?.paciente
     }
+
     fun totalCaninos(): Double {
+
         return historial
             .filter {
                 it.paciente is Canino
@@ -198,7 +186,6 @@ class PetCare {
                 it.montoPagado
             }
     }
-
     fun totalFelinos(): Double {
         return historial
             .filter {
@@ -217,19 +204,16 @@ class PetCare {
                 it.montoPagado
             }
     }
-
     fun tipoMayorIngreso(): String {
         val caninos = totalCaninos()
         val felinos = totalFelinos()
         val exoticos = totalExoticos()
-
         if (caninos >= felinos && caninos >= exoticos) {
             return "Canino"
         }
         if (felinos >= caninos && felinos >= exoticos) {
             return "Felino"
         }
-
         return "Exotico"
     }
     fun tipoPaciente(paciente: Paciente): String {
@@ -246,8 +230,10 @@ class PetCare {
         println(
             "Boxes disponibles: ${cantidadBoxesDisponibles()}"
         )
+
         println()
         println("Pacientes de convenio:")
+
         val convenios = pacientesConvenio()
         if (convenios.isEmpty()) {
             println("No hay pacientes de convenio")
@@ -256,7 +242,6 @@ class PetCare {
                 println("- ${paciente.nombre}")
             }
         }
-
         println()
         println(
             "Ingreso promedio: \$${ingresoPromedio()}"
@@ -264,15 +249,19 @@ class PetCare {
 
         println()
         println("Codigos finalizados:")
+
         val codigos = codigosFinalizados()
         for (codigo in codigos) {
             println("- $codigo")
         }
+
         println()
+
         val pacienteMayor =
             pacienteMayorTiempo()
 
         if (pacienteMayor != null) {
+
             println(
                 "Paciente con mayor tiempo: " +
                         pacienteMayor.nombre
@@ -281,6 +270,7 @@ class PetCare {
     }
 
     fun reporteCierre() {
+
         println()
         println("============================")
         println("REPORTE DE CIERRE PETCARE")
@@ -306,13 +296,14 @@ class PetCare {
             println(
                 "Monto: \$${ticket.montoPagado}"
             )
-
             if (ticket.paciente is Exotico) {
+
                 println(
                     "Silvestre: ${ticket.paciente.silvestre}"
                 )
             }
         }
+
         println()
         println("----------------------------")
         println(

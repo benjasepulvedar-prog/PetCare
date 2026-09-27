@@ -9,7 +9,6 @@ open class Paciente(
     val fechaIngreso: LocalDateTime,
     val tipoDueno: TipoDueno
 ) {
-
     open fun calcularCostoBase(minutos: Int): Double {
         return 0.0
     }
