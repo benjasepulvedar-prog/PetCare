@@ -1,12 +1,15 @@
 package org.example
 
 import org.example.model.Canino
+import org.example.model.Exotico
 import org.example.model.Felino
 import org.example.model.TipoDueno
+import org.example.service.PetCare
 import java.time.LocalDateTime
-import org.example.model.Exotico
 
 fun main() {
+
+    val sistema = PetCare()
 
     val max = Canino(
         codigo = "CA12CD",
@@ -15,29 +18,87 @@ fun main() {
         fechaIngreso = LocalDateTime.now(),
         tipoDueno = TipoDueno.CONVENIO
     )
-
-    val costoMax = max.calcularCostoBase(75)
-
-    println("Costo base de Max: $$costoMax")
-
-
-    val misi = Felino(
-        codigo = "FE22TO",
-        nombre = "Misi",
-        especie = "Siamés",
+    val luna = Canino(
+        codigo = "CA99ZA",
+        nombre = "Luna",
+        especie = "Labrador",
         fechaIngreso = LocalDateTime.now(),
         tipoDueno = TipoDueno.PARTICULAR
     )
-    val costoMisi = misi.calcularCostoBase(18)
-    println("Costo base de Misi: $$costoMisi")
+    val misi = Felino(
+        codigo = "FE22TO",
+        nombre = "Misi",
+        especie = "Siames",
+        fechaIngreso = LocalDateTime.now(),
+        tipoDueno = TipoDueno.PARTICULAR
+    )
     val loro = Exotico(
         codigo = "EX44RG",
         nombre = "Loro",
-        especie = "Amazónico",
+        especie = "Amazonico",
         fechaIngreso = LocalDateTime.now(),
         tipoDueno = TipoDueno.MUNICIPAL,
         silvestre = true
     )
-    val costoLoro = loro.calcularCostoBase(120)
-    println("Costo base de Loro: $$costoLoro")
+
+    val iguana = Exotico(
+        codigo = "EX77RG",
+        nombre = "Iguana",
+        especie = "Verde",
+        fechaIngreso = LocalDateTime.now(),
+        tipoDueno = TipoDueno.PARTICULAR,
+        silvestre = false
+    )
+
+    println("--- ENTRADAS ---")
+    sistema.registrarEntrada(max)
+    sistema.registrarEntrada(luna)
+    sistema.registrarEntrada(misi)
+    sistema.registrarEntrada(loro)
+    sistema.registrarEntrada(iguana)
+    println()
+    println("--- BOXES OCUPADOS ---")
+    sistema.mostrarBoxes()
+
+    println()
+    println("--- PRUEBA CODIGO INVALIDO ---")
+    val pacienteError = Canino(
+        codigo = "123ABC",
+        nombre = "Rocky",
+        especie = "Pastor Aleman",
+        fechaIngreso = LocalDateTime.now(),
+        tipoDueno = TipoDueno.PARTICULAR
+    )
+    sistema.registrarEntrada(pacienteError)
+    println()
+    println("--- SALIDAS ---")
+    sistema.registrarSalida(
+        codigo = "CA12CD",
+        minutos = 75
+    )
+    sistema.registrarSalida(
+        codigo = "CA99ZA",
+        minutos = 180
+    )
+    sistema.registrarSalida(
+        codigo = "FE22TO",
+        minutos = 18
+    )
+
+    sistema.registrarSalida(
+        codigo = "EX44RG",
+        minutos = 120
+    )
+    sistema.registrarSalida(
+        codigo = "EX77RG",
+        minutos = 45
+    )
+    println()
+    println("--- PRUEBA PACIENTE NO ENCONTRADO ---")
+    sistema.registrarSalida(
+        codigo = "ZZ99ZZ",
+        minutos = 30
+    )
+    sistema.mostrarConsultas()
+    sistema.reporteCierre()
 }
